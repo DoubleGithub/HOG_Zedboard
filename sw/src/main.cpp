@@ -320,17 +320,18 @@ void initDisplay(){
 
 int main(int argc, char* argv[]) {
 
+	// OpenMP的线程数量
     omp_set_num_threads(2);                                                 
 
     // Set as input source the webcam 
 	VideoCapture capture(0);
 
 	if( !capture.isOpened() )
-	throw "Camera not found";
+		throw "Camera not found";
 	
 	//Initialize hardware
 	initDisplay();
-	hog_init(HOG0,"hog0");
+	hog_init(HOG0,"hog0");		//初始化uioX设备，mmap映射spec_addr和 control_bus addr
 	hog_init(HOG1,"hog1");
 	hog_init(HOG2,"hog2");
 	hog_init(HOG3,"hog3");
@@ -348,6 +349,7 @@ int main(int argc, char* argv[]) {
 	unsigned char *imageBuffer1;
 
 	// Map image buffers to physical memory
+	// 通过 /dev/mem 实现用户空间访问物理地址
 	imageBuffer0 = assignToPhysicalUChar(IMAGEBUFFER0,656*496);
 	imageBuffer1 = assignToPhysicalUChar(IMAGEBUFFER1,656*496);
 
@@ -364,6 +366,7 @@ int main(int argc, char* argv[]) {
 		// RGB -> Grayscale
 		cvtColor(cameraImage, gray, CV_BGR2GRAY);
 		// Pad image
+		// 用 Scalar(0,0,0) 扩充边界
 		copyMakeBorder( gray, grayWithBorder, 2, 14, 8, 8, BORDER_CONSTANT, value );
 		// Initial image scale 
 		resize(grayWithBorder,grayWithBorder,Size((int)656*START_SCALE,(int)496*START_SCALE),0.0,0.0,INTER_LINEAR);
